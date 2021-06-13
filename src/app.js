@@ -1,6 +1,4 @@
-
-    
-
+require('dotenv').config()
 const server=async()=>{
     require('./connection/database')
     await require('./services/rcon')()

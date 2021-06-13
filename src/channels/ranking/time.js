@@ -36,29 +36,29 @@ module.exports={update:update,time:async(discord)=>{
         let users=await user.find().sort({Allseconds: -1}).limit(10)
         message="\n"
         users.map((user,index)=>{
-            message+=(index+1)+"º\tNickname: "+user.mineNick+"\tHours: "+Math.round(((user.Allseconds/60)/60 + Number.EPSILON) * 100) / 100+"\n"
+            message+=(index+1)+"º\tNickname: "+user.mineNick+" \tHours: "+Math.round(((user.Allseconds/60)/60 + Number.EPSILON) * 100) / 100+"\n"
         })
         lastMessage.push(await channelTime.send(message))
         users=await user.find().sort({maxLvl: -1}).limit(10)
         message="\n"
         users.map((user,index)=>{
-            message+=(index+1)+"º\tNickname: "+user.mineNick+"\tMaxLevel: "+user.maxLvl+"\tLevel: "+user.lvl+"\n"
+            message+=(index+1)+"º\tNickname: "+user.mineNick+" \tMaxLevel: "+user.maxLvl+"\tLevel: "+user.lvl+"\n"
         })
         lastMessage.push(await channelLevel.send(message))
         users=await user.find().sort({maxScore: -1}).limit(10)
         message="\n"
         users.map((user,index)=>{
-            message+=(index+1)+"º\tNickname: "+user.mineNick+"\tMaxScore: "+user.maxScore+"\tScore: "+user.score+"\n"
+            message+=(index+1)+"º\tNickname: "+user.mineNick+" \tMaxScore: "+user.maxScore+"\tScore: "+user.score+"\n"
         })
         lastMessage.push(await channelScore.send(message))
         users=await user.find().sort({maxAlive: -1}).limit(10)
         message="\n"
         users.map((user,index)=>{
-            message+=(index+1)+"º\tNickname: "+user.mineNick+"\tMaxHours: "+Math.round(((user.maxAlive/60)/60 + Number.EPSILON) * 100) / 100+"\tCurrent: "+Math.round(((user.alive/60)/60 + Number.EPSILON) * 100) / 100+"\n"
+            message+=(index+1)+"º\tNickname: "+user.mineNick+" \tMaxHours: "+Math.round(((user.maxAlive/60)/60 + Number.EPSILON) * 100) / 100+"\tCurrent: "+Math.round(((user.alive/60)/60 + Number.EPSILON) * 100) / 100+"\n"
         })
         lastMessage.push(await channelAlive.send(message))
 
-    },60000*15)
+    },60000*process.env.RANKING_TIME_SHOW|20)
     setInterval(async()=>{
         const keys=Object.keys(players)
         for(let i=0;i<keys.length;i++){
@@ -114,5 +114,5 @@ module.exports={update:update,time:async(discord)=>{
             }
         }
         players={}
-    },100200)
+    },60000*(process.env.RANKING_TIME_UPDATE|1.5))
 }}

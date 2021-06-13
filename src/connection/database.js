@@ -1,4 +1,4 @@
 const mongoose =require('mongoose');
-const db = mongoose.connect('mongodb://localhost:27017/Discord', { useNewUrlParser: true });
+const db = mongoose.connect(process.env.MONGODB_URI, { useNewUrlParser: true });
 
 module.exports= db;
