@@ -8,7 +8,7 @@ const filterNames=(names)=>{
     const re=new RegExp(' ', 'g');
     return names.replace(re,'').split(',')
 }
-const update=(names,quant)=>{
+const update=async(names,quant)=>{
     if(Number(quant)>0){
         names=filterNames(names)
         for(let i=0;i<names.length;i++){
@@ -32,45 +32,57 @@ module.exports={update:update,time:async(discord)=>{
     const channelScore= await discord.channels.cache.get('852469705078734888');
     const channelAlive= await discord.channels.cache.get('852469890622423070');
     setInterval(async()=>{
-        lastMessage.map(async(msg)=>await msg.delete())
-        let users=await user.find().sort({Allseconds: -1}).limit(10)
-        message="\n"
-        users.map((user,index)=>{
-            message+=(index+1)+"º\tNickname: "+user.mineNick+" \tHours: "+Math.round(((user.Allseconds/60)/60 + Number.EPSILON) * 100) / 100+"\n"
-        })
-        lastMessage.push(await channelTime.send(message))
-        users=await user.find().sort({maxLvl: -1}).limit(10)
-        message="\n"
-        users.map((user,index)=>{
-            message+=(index+1)+"º\tNickname: "+user.mineNick+" \tMaxLevel: "+user.maxLvl+"\tLevel: "+user.lvl+"\n"
-        })
-        lastMessage.push(await channelLevel.send(message))
-        users=await user.find().sort({maxScore: -1}).limit(10)
-        message="\n"
-        users.map((user,index)=>{
-            message+=(index+1)+"º\tNickname: "+user.mineNick+" \tMaxScore: "+user.maxScore+"\tScore: "+user.score+"\n"
-        })
-        lastMessage.push(await channelScore.send(message))
-        users=await user.find().sort({maxAlive: -1}).limit(10)
-        message="\n"
-        users.map((user,index)=>{
-            message+=(index+1)+"º\tNickname: "+user.mineNick+" \tMaxHours: "+Math.round(((user.maxAlive/60)/60 + Number.EPSILON) * 100) / 100+"\tCurrent: "+Math.round(((user.alive/60)/60 + Number.EPSILON) * 100) / 100+"\n"
-        })
-        lastMessage.push(await channelAlive.send(message))
+        try{
+            console.log("showing ranking")
+            console.log(lastMessage)
+            promises=lastMessage.map(async(msg)=>await msg.delete())
+            Promise.all(promises).then(async()=>{
+                lastMessage=[];console.log(lastMessage)
+                let users=await user.find().sort({Allseconds: -1}).limit(10)
+                message="\n"
+                users.map((user,index)=>{
+                    message+=(index+1)+"º\tNickname: "+user.mineNick+" \tHours: "+Math.round(((user.Allseconds/60)/60 + Number.EPSILON) * 100) / 100+"\n"
+                })
+                lastMessage.push(await channelTime.send(message))
+                users=await user.find().sort({maxLvl: -1}).limit(10)
+                message="\n"
+                users.map((user,index)=>{
+                    message+=(index+1)+"º\tNickname: "+user.mineNick+" \tMaxLevel: "+user.maxLvl+"\tLevel: "+user.lvl+"\n"
+                })
+                lastMessage.push(await channelLevel.send(message))
+                users=await user.find().sort({maxScore: -1}).limit(10)
+                message="\n"
+                users.map((user,index)=>{
+                    message+=(index+1)+"º\tNickname: "+user.mineNick+" \tMaxScore: "+user.maxScore+"\tScore: "+user.score+"\n"
+                })
+                lastMessage.push(await channelScore.send(message))
+                users=await user.find().sort({maxAlive: -1}).limit(10)
+                message="\n"
+                users.map((user,index)=>{
+                    message+=(index+1)+"º\tNickname: "+user.mineNick+" \tMaxHours: "+Math.round(((user.maxAlive/60)/60 + Number.EPSILON) * 100) / 100+"\tCurrent: "+Math.round(((user.alive/60)/60 + Number.EPSILON) * 100) / 100+"\n"
+                })
+                lastMessage.push(await channelAlive.send(message))
+                console.log(lastMessage)
+                console.log("showing ranking --finish")
+            })
+            
+        }catch(e){
+            console.log("error on SHOW_RANKING")
+        }
 
-    },60000*process.env.RANKING_TIME_SHOW|20)
+    },60000*(Number(process.env.RANKING_TIME_SHOW)||20))
     setInterval(async()=>{
         const keys=Object.keys(players)
-        for(let i=0;i<keys.length;i++){
-            try{
-                xp=Number(filterData(await rcon.send("data get entity "+keys[i]+" XpLevel")))
-                score=Number(filterData(await rcon.send("data get entity "+keys[i]+" Score")))
-            }catch(e){
-                rcon=await recon()
-            }
-            try{
-                xp=Number(filterData(await rcon.send("data get entity "+keys[i]+" XpLevel")))
-                score=Number(filterData(await rcon.send("data get entity "+keys[i]+" Score")))
+        try{
+            for(let i=0;i<keys.length;i++){
+                try{
+                    xp=Number(filterData(await rcon.send("data get entity "+keys[i]+" XpLevel")))
+                    score=Number(filterData(await rcon.send("data get entity "+keys[i]+" Score")))
+                }catch(e){
+                    rcon=await recon()
+                    xp=Number(filterData(await rcon.send("data get entity "+keys[i]+" XpLevel")))
+                    score=Number(filterData(await rcon.send("data get entity "+keys[i]+" Score")))
+                }
                 const find = await user.findOne({mineNick:keys[i]})
                 if(find){
                     if(xp && score){
@@ -100,19 +112,10 @@ module.exports={update:update,time:async(discord)=>{
                     players[keys[i]].score
                     user.create({mineNick:keys[i],Allseconds:players[keys[i]].online,Weekseconds:players[keys[i]].online,dayseconds:players[keys[i]].online,maxLvl:xp,lvl:xp,maxScore:score,score:score,maxAlive:players[keys[i]].online,alive:players[keys[i]].online})
                 }
-            }catch(e){
-                if(find){
-                    find.Allseconds+=players[keys[i]].online
-                    find.Weekseconds+=players[keys[i]].online
-                    find.dayseconds+=players[keys[i]].online
-                    await find.save()
-                }else{
-                    players[keys[i]].xp=xp
-                    players[keys[i]].score
-                    user.create({mineNick:keys[i],Allseconds:players[keys[i]].online,Weekseconds:players[keys[i]].online,dayseconds:players[keys[i]].online,maxAlive:players[keys[i]].online,alive:players[keys[i]].online})
-                }
             }
+            players={}
+        }catch(e){
+            console.log('error on ranking update')
         }
-        players={}
-    },60000*(process.env.RANKING_TIME_UPDATE|1.5))
+    },60000*(process.env.RANKING_TIME_UPDATE||1.5))
 }}
